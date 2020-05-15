@@ -1,4 +1,6 @@
 const HttpError = require("../models/Http-error");
+const { v4: uuidv4 } = require("uuid");
+const { validationResult } = require("express-validator");
 
 const DUMMY_USERS = [
   {
@@ -20,9 +22,17 @@ const getUser = (req, res, next) => {
   res.json({ user: user });
 };
 
+const getUsers = (req, res, next) => {
+  res.status(200).json({ user: DUMMY_USERS });
+};
+
 const singup = (req, res, next) => {
+  const error = validationResult(req);
+  if (!error.isEmpty()) {
+    throw new HttpError("Argumentos invalidos", 422);
+  }
   const { name, email, password } = req.body;
-  const id = generarUID();
+  const id = uuidv4();
   console.log(id);
   const createPlace = {
     id,
@@ -47,15 +57,15 @@ const generarUID = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
   console.log(req.body);
-  const user = DUMMY_USERS.filter(p => {
-    return p.email === email && p.password === password;
-  });
-  if (!user) {
-    throw new HttpError("FALSE", 404);
+  const identifiedUser = DUMMY_USERS.find(u => u.email === email);
+  if (!identifiedUser || identifiedUser.password !== password) {
+    throw new HttpError(
+      "No identifico al usuario, las credenciales son incorrectas"
+    );
   }
-  res.json({ user: user });
+  res.json({ message: "TRUE" });
 };
-
 exports.getUser = getUser;
 exports.singup = singup;
 exports.login = login;
+exports.getUsers = getUsers;

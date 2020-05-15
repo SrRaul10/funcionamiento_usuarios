@@ -1,6 +1,6 @@
 const HttpError = require('../models/Http-error');
-
-
+const {validationResult} = require('express-validator');
+const {v4:uuidv4} = require('uuid');
 const Dummy = [
     {
         id: "p1",
@@ -34,8 +34,14 @@ const getPlacesByUser = (req,res,next) => {
     res.json({place:places})
 }
 const createPlace = (req, res, next) => {
+    const error = validationResult(req);
+    if(!(error.isEmpty())){
+        console.log(error);
+        throw new HttpError('Argumentos de creación invalidos', 422)
+    }
     const {title,description,coordinates, address, creator} = req.body;
     const createPlace = {
+        id: uuidv4(),
         title,
         description,
         location: coordinates,
@@ -47,6 +53,11 @@ const createPlace = (req, res, next) => {
 };
 
 const updatePlace = (req, res, next) =>{
+    const error = validationResult(req);
+    if(!(error.isEmpty())){
+        console.log(error);
+        throw new HttpError('Datos invalidos', 202);
+    }
     const {title, description} = req.body;
     const placeId = req.params.pid;
     const updatePlace = {...Dummy.find(p=>(p.id===placeId))};
